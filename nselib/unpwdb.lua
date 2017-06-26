@@ -117,6 +117,15 @@ local filltable = function(filename, table)
 
   file:close()
 
+  local nmap_registry = nmap.registry['usernames']
+
+  if nmap_registry then
+    for _, username in ipairs(nmap_registry) do
+      stdnse.debug1(username)
+      table[#table + 1] = username
+    end
+  end
+
   return true
 end
 
@@ -330,4 +339,14 @@ function filter_iterator (iterator, filter)
   end
 end
 
+--- Adds a username to be password database
+-- @param username String representing the username to be added
+function add_username (username)
+  local nmap_usernames = nmap.registry['usernames']
+  if not nmap_usernames then
+    nmap.registry['usernames'] = {}
+    nmap_usernames = nmap.registry['usernames']
+  end
+  table.insert(nmap_usernames, username)
+end
 return _ENV;

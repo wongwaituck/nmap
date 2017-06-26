@@ -2,6 +2,7 @@ local http = require "http"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
+local unpwdb = require "unpwdb"
 
 description = [[
 Checks if a web server is vulnerable to directory traversal by attempting to
@@ -108,11 +109,34 @@ local truncatePasswd = function(passwd)
   return passwd:sub(1, len), len
 end
 
+--- Extracts username from response body and adds them to the unpwdb usernames
+-- @param passwd The response that was returned from the LFI
+-- @return table of usernames, or nil if no usernames were found
+local function extract_usernames (passwd)
+  local usernames = {}
+  -- if it contains the root then it most likely is /etc/passwd
+  if string.match(passwd, "root") then
+    -- parse passwd file for usernames with uid >= 1000
+    local matches = string.gmatch(passwd, "(%S+):%S+:[1-9]%d%d%d%d*:%d+")
+    for match in matches do
+      if match ~= 'nobody' then
+        stdnse.debug1("Found user: %s", match)
+        unpwdb.add_username(match)
+        table.insert(usernames, match)
+      end
+    end
+    return usernames
+  else
+    return nil
+  end
+end
+
 --- Formats output.
 --@param passwd <code>passwd</code> or <code>boot.ini</code> file.
 --@param dir Formatted request which elicited the good response.
 --@return String description for output
 local output = function(passwd, dir)
+  extract_usernames(passwd)
   local trunc, len = truncatePasswd(passwd)
   return ('Directory traversal found.\nPayload: "%s"\nPrinting first %d bytes:\n%s'):format(dir, len, trunc)
 end

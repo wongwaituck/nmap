@@ -43,6 +43,8 @@ portrule = shortport.port_or_service(21, "ftp")
 local arg_timeout = stdnse.parse_timespec(stdnse.get_script_args(SCRIPT_NAME .. ".timeout"))
 arg_timeout = (arg_timeout or 5) * 1000
 
+dependencies = {"http-passwd"}
+
 Driver = {
 
   new = function(self, host, port)
