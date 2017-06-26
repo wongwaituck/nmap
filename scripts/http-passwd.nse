@@ -21,6 +21,7 @@ The script uses several technique:
 -- The default value is <code>/</code>. Normally the value should contain a
 -- leading slash. The queries will be sent with a trailing encoded null byte to
 -- evade certain checks; see http://insecure.org/news/P55-01.txt.
+-- @args http-passwd.cookie The cookie to use when making these requests
 --
 -- @output
 -- 80/tcp open  http
@@ -166,11 +167,17 @@ action = function(host, port)
   end
 
   local root = stdnse.get_script_args("http-passwd.root") or "/"
-
+  local cookie = stdnse.get_script_args("http-passwd.cookie") or nil
   -- Check for something that looks like a query referring to a file name, like
   -- "index.php?page=next.php". Replace the query value with each of the test
   -- vectors.
-  local response = http.get(host, port, root)
+  local options = {}
+
+  if cookie then
+    options['cookies'] = cookie
+  end
+
+  local response = http.get(host, port, root, options)
   if response.body then
     local page_var = response.body:match ("[%?%&](%a-)=%a-%.%a")
     if page_var then
@@ -180,7 +187,7 @@ action = function(host, port)
       for _, dir in ipairs(dirs) do
         -- Add an encoded null byte at the end to bypass some checks; see
         -- http://insecure.org/news/P55-01.txt.
-        local response = http.get(host, port, query_base .. dir .. "%00")
+        local response = http.get(host, port, query_base .. dir .. "%00", options)
 
         if validate(response) then
           return output(response.body, dir .. "%00")
@@ -188,7 +195,7 @@ action = function(host, port)
 
         -- Try again. This time without null byte injection. For example as
         -- of PHP 5.3.4, include() does not accept paths with NULL in them.
-        local response = http.get(host, port, query_base .. dir)
+        local response = http.get(host, port, query_base .. dir, options)
         if validate(response) then
             return output(response.body, dir)
         end
