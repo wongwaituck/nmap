@@ -1,4 +1,27 @@
-# Nmap Changelog ($Id: CHANGELOG 36805 2017-06-11 20:17:30Z dmiller $); -*-text-*-
+﻿# Nmap Changelog ($Id$); -*-text-*-
+
+o [NSE] openwebnet-discovery retrieves device identifying information and
+ number of connected devices running on openwebnet protocol. [Rewanth Cool]
+
+o [NSE][GH#938] Fix handling of the objectSID Active Directory attribute
+  by ldap.lua. [Tom Sellers]
+
+o [NSE] puppet-naivesigning checks for a misconfiguration in the Puppet CA
+  where naive signing is enabled, allowing for any CSR to be automatically
+  signed. [Wong Wai Tuck]
+
+o [NSE] Fix line endings in the list of Oracle SIDs used by oracle-sid-brute.
+  Carriage Return characters were being sent in the connection packets, likely
+  resulting in failure of the script. [Anant Shrivastava]
+
+o [NSE] iec-identify probes for the IEC 60870-5-104 SCADA protocol.
+  [Aleksandr Timorin, Daniel Miller]
+
+o [GH#910] added libssh2 support, ssh-brute, ssh-run, ssh-auth-methods,
+  ssh-publickey-acceptance [Evangelos Deirmentzoglou]
+
+o [NSE] http-vuln-cve2017-8917 checks for an SQL injection vulnerability
+  affecting Joomla! 3.7.x before 3.7.1. [Wong Wai Tuck]
 
 o [NSE][GH#141] http-useragent-checker now checks for changes in HTTP status
   (usually 403 Forbidden) in addition to redirects to indicate forbidden User
