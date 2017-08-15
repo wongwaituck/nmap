@@ -1,0 +1,27 @@
+#!comment: retrieved from https://nlp.stanford.edu/IR-book/html/htmledition/dropping-common-terms-stop-words-1.html
+#!comment: we use a very conservative stopword list to prevent omitting important words that may seem like stopwords but are not
+a
+an
+and
+are
+as
+at
+be
+by
+for
+from
+has
+he
+in
+is
+it
+its
+of
+on
+that
+the
+to
+was
+were
+will
+with

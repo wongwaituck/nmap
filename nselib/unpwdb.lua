@@ -62,7 +62,7 @@
 -- <code>unpwdb.timelimit=30m</code> or <code>unpwdb.timelimit=.5h</code> for
 -- 30 minutes. The default depends on the timing template level (see the module
 -- description). Use the value <code>0</code> to disable the time limit.
--- @author Kris Katterjohn 06/2008
+-- @author Kris Katterjohn 06/2008, Wong Wai Tuck 08/2017
 -- @copyright Same as Nmap--See https://nmap.org/book/man-legal.html
 
 local io = require "io"
@@ -73,6 +73,125 @@ _ENV = stdnse.module("unpwdb", stdnse.seeall)
 
 local usertable = {}
 local passtable = {}
+
+local profiled_table = {}
+local stopwords_table = {}
+
+--- fills the table with the contents of the file, delimited by new lines
+--  the file will use "#!comment:" for comments
+--  @param filename the string containing the full path to the file to be loaded
+--  @param table the table to be loaded with the contents
+--  @param lower_case boolean indicating whether to standardize to lower case
+--  default: false, i.e. contents wll be loaded as is
+local filltable = function(filename, table, lower_case)
+  if #table ~= 0 then
+    return true
+  end
+
+  local file = io.open(filename, "r")
+
+  if not file then
+    return false
+  end
+
+  for l in file:lines() do
+    -- Comments takes up a whole line
+    if not l:match("#!comment:") then
+      if lower_case then
+        table[#table + 1] = l:lower()
+      else
+        table[#table + 1] = l
+      end
+    end
+  end
+
+  file:close()
+
+  return true
+end
+
+--- loads stop words, optionally from a file
+--  @return status indicating success or failure in loading the stopword table
+local function load_stop_words()
+  local stopword_file = stdnse.get_script_args('stopwordlst') or
+    nmap.fetchfile("nselib/data/stopwords_en.lst")
+  local err
+
+  if stopword_file then
+    local status = filltable(stopword_file ,stopwords_table, true)
+    if not status then
+      err = "Stopword file loading failed!"
+      stdnse.debug2(err)
+      return false, err
+    end
+  else
+    err = "Stopword file not found!"
+    stdnse.debug2(err)
+    return false
+  end
+
+  return true
+end
+
+--- saves a word verbatim to the password profile table
+--  @param host the target host object that you wish to associate the word
+--  @param keyword the profiling keyword that is associated with the host
+--  @return boolean representing whether the keyword was associated
+--  @return error the error if the adding was unsuccessful
+function add_word(host, keyword)
+  -- naive adding for now
+  -- TODO: process for subnet based scanning
+  -- do not insert duplicates inside the profiling!
+  if not stdnse.contains(profiled_table, keyword) then
+    table.insert(profiled_table, keyword)
+  end
+end
+
+--- parses a phrease for unique words, with an option to include stop words
+--  @param host the target host object that you wish to associate the words
+--  @param phrase the whole phrase that you wish to parse
+--  @param separator the character that you wish to separate the phrase,
+--  default: any whitespace character, optional
+--  @param include_stop_words a boolean indicating whether to include stopwords
+--  default: false, optional
+--  @return boolean representing whether the keywords were associated
+--  @return words the array of words added to the password profile, or nil
+--  @return error the error if the adding was unsuccessful
+function add_phrase(host, phrase, separator, include_stop_words)
+  local words = {}
+
+  if not include_stop_words then
+    local status = load_stop_words()
+    if not status then
+      return false, nil, err
+    end
+  end
+
+  if phrase and #phrase > 0 then
+    if separator == nil then
+      -- match all non whitespace characters
+      for word in phrase:gmatch("%S+") do
+        local l_word = word:lower()
+        -- only add word if choose to include stopwords so no check OR
+        -- it passes the check of not being inside the stopwords table
+        if include_stop_words or not stdnse.contains(stopwords_table, l_word) then
+          local status, err = add_word(host, word)
+          if not status then
+            stdnse.debug2("Error occured while adding word to pwdprofile: %s",
+              err)
+            return false, nil, err
+          else
+            table.insert(words, word)
+          end
+        end
+      end
+    else
+    -- use the separator in the processing
+    -- haven't figured out the logic for this yet
+    end
+  end
+  return true, words, nil
+end
 
 local customdata = false
 
@@ -97,40 +216,28 @@ local passfile = function()
   return nmap.fetchfile("nselib/data/passwords.lst")
 end
 
-local filltable = function(filename, table)
-  if #table ~= 0 then
-    return true
-  end
-
-  local file = io.open(filename, "r")
-
-  if not file then
-    return false
-  end
-
-  for l in file:lines() do
-    -- Comments takes up a whole line
-    if not l:match("#!comment:") then
-      table[#table + 1] = l
-    end
-  end
-
-  file:close()
-
-  return true
-end
-
 table_iterator = function(table)
+  local h = 1
   local i = 1
 
   return function(cmd)
     if cmd == "reset" then
+      h = 1
       i = 1
       return
     end
-    local elem = table[i]
-    if elem then i = i + 1 end
-    return elem
+
+    -- iterate through the profiling table first
+    local prof_elem = profiled_table[h]
+    if prof_elem then
+      h = h + 1
+    else
+      -- no more elements
+      -- now iterate through the actual table, whatever it is
+      local elem = table[i]
+      if elem then i = i + 1 end
+      return elem
+    end
   end
 end
 
