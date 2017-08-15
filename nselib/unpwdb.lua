@@ -139,15 +139,30 @@ end
 --  @return boolean representing whether the keyword was associated
 --  @return error the error if the adding was unsuccessful
 function add_word(host, keyword)
+  local export_file = stdnse.get_script_args('unpwdb.export_file')
+  local f, err
+
+  if export_file ~= nil and #export_file > 0 then
+    f, err = io.open(export_file, "a")
+    if not f then
+      stdnse.debug2("Error saving \"%s\" to %s: %s\n", keyword, export_file, err)
+      return f, err
+    end
+  end
+
   -- naive adding for now
   -- TODO: process for subnet based scanning
   -- do not insert duplicates inside the profiling!
   if not stdnse.contains(profiled_table, keyword) then
     table.insert(profiled_table, keyword)
+    if f then
+      f:write(keyword)
+      f:close()
+    end
   end
 end
 
---- parses a phrease for unique words, with an option to include stop words
+--- parses a phrase for unique words, with an option to include stop words
 --  @param host the target host object that you wish to associate the words
 --  @param phrase the whole phrase that you wish to parse
 --  @param separator the character that you wish to separate the phrase,
@@ -179,7 +194,7 @@ function add_phrase(host, phrase, separator, include_stop_words)
           if not status then
             stdnse.debug2("Error occured while adding word to pwdprofile: %s",
               err)
-            return false, nil, err
+            return status, nil, err
           else
             table.insert(words, word)
           end
