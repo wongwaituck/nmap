@@ -71,6 +71,8 @@ local os = require "os"
 local stdnse = require "stdnse"
 _ENV = stdnse.module("unpwdb", stdnse.seeall)
 
+PWDPROFILE_SCRIPTS = {"smb-os-discovery"}
+
 local usertable = {}
 local passtable = {}
 
@@ -253,6 +255,7 @@ table_iterator = function(table)
     local prof_elem = profiled_table[h]
     if prof_elem then
       h = h + 1
+      return prof_elem
     else
       -- no more elements
       -- now iterate through the actual table, whatever it is

@@ -2,7 +2,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local brute = require "brute"
 local creds = require "creds"
-
+local unpwdb = require "unpwdb"
 local libssh2_util = require "libssh2-utility"
 
 description = [[
@@ -30,6 +30,7 @@ categories = {
   'brute',
   'intrusive',
 }
+dependencies = unpwdb.PWDPROFILE_SCRIPTS
 
 portrule = shortport.port_or_service(22, 'ssh')
 

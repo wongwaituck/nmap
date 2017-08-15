@@ -3,6 +3,7 @@ local smb = require "smb"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to determine the operating system, computer name, domain, workgroup, and current
@@ -138,9 +139,14 @@ function make_cpe(result)
   end
 end
 
-function add_to_output(output_table, label, value)
+function add_to_output(output_table, label, value, host)
   if value then
     table.insert(output_table, string.format("%s: %s", label, value))
+    if string.find(value, '\x00') then
+      value = string.gsub(value, '\x00', '')
+      stdnse.debug1(value)
+    end
+    unpwdb.add_word(host, value)
   end
 end
 
@@ -169,26 +175,26 @@ action = function(host)
   -- Build normal output.
   local output_lines = {}
   if response.os and response.lanmanager then
-    add_to_output(output_lines, "OS", string.format("%s (%s)", smb.get_windows_version(response.os), response.lanmanager))
+    add_to_output(output_lines, "OS", string.format("%s (%s)", smb.get_windows_version(response.os), response.lanmanager), host)
   else
-    add_to_output(output_lines, "OS", "Unknown")
+    add_to_output(output_lines, "OS", "Unknown", host)
   end
-  add_to_output(output_lines, "OS CPE", response.cpe)
+  add_to_output(output_lines, "OS CPE", response.cpe, host)
   if response.fqdn then
     -- Pull the first part of the FQDN as the computer name.
-    add_to_output(output_lines, "Computer name", string.match(response.fqdn, "^([^.]+)%.?"))
+    add_to_output(output_lines, "Computer name", string.match(response.fqdn, "^([^.]+)%.?"), host)
   end
-  add_to_output(output_lines, "NetBIOS computer name", result.server)
+  add_to_output(output_lines, "NetBIOS computer name", result.server, host)
   if response.fqdn and response.domain_dns and response.fqdn ~= response.domain_dns then
     -- If the FQDN doesn't match the domain name, the target is a domain member.
-    add_to_output(output_lines, "Domain name", response.domain_dns)
-    add_to_output(output_lines, "Forest name", response.forest_dns)
-    add_to_output(output_lines, "FQDN", response.fqdn)
-    add_to_output(output_lines, "NetBIOS domain name", response.domain)
+    add_to_output(output_lines, "Domain name", response.domain_dns, host)
+    add_to_output(output_lines, "Forest name", response.forest_dns, host)
+    add_to_output(output_lines, "FQDN", response.fqdn, host)
+    add_to_output(output_lines, "NetBIOS domain name", response.domain, host)
   else
     add_to_output(output_lines, "Workgroup", response.workgroup or response.domain)
   end
-  add_to_output(output_lines, "System time", response.date or "Unknown")
+  add_to_output(output_lines, "System time", response.date or "Unknown", host)
 
   -- Augment service version detection
   if result.port and response.lanmanager then
