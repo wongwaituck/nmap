@@ -139,6 +139,13 @@ end
 --  @return boolean representing whether the keyword was associated
 --  @return error the error if the adding was unsuccessful
 function add_word(host, keyword)
+  local disabled = stdnse.get_script_args('unpwdb.disable_profile')
+
+  -- if the disable profile is on we don't add any words to the profiling table
+  if disabled and (disabled ~= 'false' or disabled ~= 'False') then
+    return
+  end
+
   local export_file = stdnse.get_script_args('unpwdb.export_file')
   local f, err
 
