@@ -174,10 +174,10 @@ end
 --- parses a phrase for unique words, with an option to include stop words
 --  @param host the target host object that you wish to associate the words
 --  @param phrase the whole phrase that you wish to parse
---  @param separator the character that you wish to separate the phrase,
---  default: any whitespace character, optional
+--  @param separator the character that you wish to separate the phrase, can be
+--  a pattern; default: any whitespace character (optional)
 --  @param include_stop_words a boolean indicating whether to include stopwords
---  default: false, optional
+--  default: false (optional)
 --  @return boolean representing whether the keywords were associated
 --  @return words the array of words added to the password profile, or nil
 --  @return error the error if the adding was unsuccessful
@@ -191,27 +191,29 @@ function add_phrase(host, phrase, separator, include_stop_words)
     end
   end
 
+  local words_split
   if phrase and #phrase > 0 then
     if separator == nil then
-      -- match all non whitespace characters
-      for word in phrase:gmatch("%S+") do
-        local l_word = word:lower()
-        -- only add word if choose to include stopwords so no check OR
-        -- it passes the check of not being inside the stopwords table
-        if include_stop_words or not stdnse.contains(stopwords_table, l_word) then
-          local status, err = add_word(host, word)
-          if not status then
-            stdnse.debug2("Error occured while adding word to pwdprofile: %s",
-              err)
-            return status, nil, err
-          else
-            table.insert(words, word)
-          end
+      -- default behavoir: match all non whitespace characters words
+      words_split = phrase:gmatch("%S+")
+    else
+      -- use the separator in the processing
+      words_split = stdnse.strsplit(separator, phrase)
+    end
+    for word in words_split do
+      local l_word = word:lower()
+      -- only add word if choose to include stopwords so no check OR
+      -- it passes the check of not being inside the stopwords table
+      if include_stop_words or not stdnse.contains(stopwords_table, l_word) then
+        local status, err = add_word(host, word)
+        if not status then
+          stdnse.debug2("Error occured while adding word to pwdprofile: %s",
+            err)
+          return status, nil, err
+        else
+          table.insert(words, word)
         end
       end
-    else
-    -- use the separator in the processing
-    -- haven't figured out the logic for this yet
     end
   end
   return true, words, nil
