@@ -159,8 +159,6 @@ function add_word(host, keyword)
     end
   end
 
-  -- naive adding for now
-  -- TODO: process for subnet based scanning
   -- do not insert duplicates inside the profiling!
   if not stdnse.contains(profiled_table, keyword) then
     table.insert(profiled_table, keyword)
@@ -217,6 +215,53 @@ function add_phrase(host, phrase, separator, include_stop_words)
     end
   end
   return true, words, nil
+end
+
+--  adds the email and constituent elements (username and domain) to the profile
+--
+--  this function only expects the typical email format, i.e. <user>@<domain>
+--  if more complicated email formats are expected, scripts should parse it
+--  manually
+--
+--  @param host the target host object in which you wish to associate the words
+--  @param email the email that you wish to parse
+--  @return boolean representing whether all the keywords were associated
+--  @return words the array of words added to the password profile, or nil
+--  @return errors the array of errors if the adding was unsuccessful
+function add_email(host, email)
+  local username, domain = stdnse.strsplit("@", email)
+
+  local words_added = {}
+  local errors = {}
+  local u_status, u_err = add_word(host, username)
+  local d_status, d_err = add_word(host, domain)
+  -- split the domain by '.', the constituent words are added
+  local p_status, p_words, p_err = add_phrase(host, domain, "%.")
+
+  if u_err then
+    table.insert(errors, u_err)
+    stdnse.debug2("Username failed to add to pwdprofile, Error: %s", u_err)
+  else
+    table.insert(words_added, username)
+  end
+
+  if d_err then
+    table.insert(errors, d_err)
+    stdnse.debug2("Domain failed to add to pwdprofile, Error: %s", d_err)
+  else
+    table.insert(words_added, domain)
+  end
+
+  if p_err then
+    table.insert(errors, p_err)
+    stdnse.debug2("Failed to add domain split to pwdprofile, Error: %s", p_err)
+  else
+    for _, word in pairs(p_words) do
+      table.insert(words_added, word)
+    end
+  end
+
+  return u_status and d_status and p_status, words_added, errors
 end
 
 local customdata = false
