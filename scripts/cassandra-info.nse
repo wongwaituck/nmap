@@ -2,7 +2,7 @@ local creds = require "creds"
 local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
-
+local unpwdb = require "unpwdb"
 local cassandra = stdnse.silent_require "cassandra"
 
 description = [[
@@ -90,5 +90,7 @@ function action(host,port)
   nmap.set_port_version(host,port)
   results["Version"] = val
 
+  -- add cluster name to profiling
+  unpwdb.add_phrase(host, results["Cluster name"])
   return results
 end

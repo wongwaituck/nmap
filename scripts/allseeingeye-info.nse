@@ -5,6 +5,7 @@ local string = require "string"
 local bin = require "bin"
 local bit = require "bit"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Detects the All-Seeing Eye service. Provided by some game servers for
@@ -153,8 +154,10 @@ action = function(host, port)
   local pos = 5
 
   pos, o["game"] = bin.unpack("p", data, pos)
+  unpwdb.add_word(host, o["game"])
   pos, o["port"] = bin.unpack("p", data, pos)
   pos, o["server name"] = bin.unpack("p", data, pos)
+  unpwdb.add_phrase(host, o["server name"])
   pos, o["game type"] = bin.unpack("p", data, pos)
   pos, o["map"] = bin.unpack("p", data, pos)
   pos, o["version"] = bin.unpack("p", data, pos)
@@ -199,6 +202,8 @@ action = function(host, port)
     if bit.band(flags, 32) ~= 0 then
       pos, player.time = bin.unpack("p", data, pos)
     end
+
+    unpwdb.add_word(host, player.name)
 
     players["player " .. playernum] = player
     playernum = playernum + 1

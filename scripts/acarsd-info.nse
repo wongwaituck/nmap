@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from a listening acarsd daemon. Acarsd decodes
@@ -100,7 +101,13 @@ action = function(host, port)
     for _, var in ipairs(vars) do
       local tag = var[2]
       local var_match = string.match(data, string.format('<%s>(.+)</%s>', tag, tag))
-      if var_match then table.insert(result, string.format("%s: %s", var[1], string.gsub(var_match, "&amp;", "&"))) end
+      if var_match then
+        table.insert(result, string.format("%s: %s", var[1], string.gsub(var_match, "&amp;", "&")))
+        -- add admin email to pwdprofile
+        if var[1] == 'AdminMail' then
+          unpwdb.add_email(host, string.gsub(var_match, "&amp;", "&"))
+        end
+      end
     end
 
   end

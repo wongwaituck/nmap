@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local unicode = require "unicode"
+local unpwdb = require "unpwdb"
 
 description = [[
 Discovers and enumerates BACNet Devices collects device information based off
@@ -1210,6 +1211,12 @@ action = function(host, port)
   end
   -- close socket
   sock:close()
+
+  -- profile relevant information
+  unpwdb.add_phrase(host, to_return["Object Name"])
+  unpwdb.add_phrase(host, to_return["Model Name"])
+  unpwdb.add_phrase(host, to_return["Description"])
+
   -- return all information that was found
   return to_return
 

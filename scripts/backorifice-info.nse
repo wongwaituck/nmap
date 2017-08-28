@@ -5,6 +5,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Connects to a BackOrifice service and gathers information about
@@ -285,7 +286,18 @@ action = function( host, port )
 
       if p_type ~= TYPE.ERROR then
         local tmp_str = cmds[i].filter(response)
+
         if tmp_str ~= nil then
+          -- add relevant information to password profiling
+          local machine_name = string.match(tmp_str, "System info for machine '(.-)'")
+          if machine_name then
+            unpwdb.add_word(host, machine_name)
+          end
+          local user_name = string.match(tmp_str, "Current user: '(.-)'")
+          if user_name then
+            unpwdb.add_word(host, user_name)
+          end
+
           if cmds[i].p_code==TYPE.PING then
             --invalid chars for hostname are allowed on old windows boxes
             local BOversion, BOhostname = string.match(tmp_str,"!PONG!(1%.20)!(.*)!")

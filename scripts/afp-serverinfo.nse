@@ -3,6 +3,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Shows AFP server information. This information includes the server's
@@ -174,6 +175,15 @@ action = function(host, port)
   -- and finally the utf8 server name
   if response.flags.UTF8ServerName then
     result["UTF8 Server Name"] = response.utf8_server_name
+  end
+
+  -- add important information to password profiling
+  if response.flags.UTF8ServerName then
+    unpwdb.add_word(host, response.utf8_server_name)
+  end
+
+  if response.server_name then
+    unpwdb.add_word(host, response.server_name)
   end
 
   return result
