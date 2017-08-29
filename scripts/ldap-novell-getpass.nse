@@ -3,6 +3,7 @@ local ldap = require "ldap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to retrieve the Novell Universal Password for a user. You
@@ -132,6 +133,9 @@ function action(host,port)
     local output = {}
     table.insert(output, ("Account: %s"):format(account))
     table.insert(output, ("Password: %s"):format(universal_pw))
+
+    unpwdb.add_word(host, string.match(account, 'CN=(.-),'))
+    unpwdb.add_word(host, universal_pw)
     return stdnse.format_output(true, output)
   else
     return fail("No password was found")

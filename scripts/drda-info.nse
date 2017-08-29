@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to extract information from database servers supporting the DRDA
@@ -110,5 +111,7 @@ action = function( host, port )
   table.insert( results, ("Instance Name: %s"):format( response.srvname ) )
   table.insert( results, ("External Name: %s"):format( response.extname ) )
 
+  -- add srvname to profiling
+  unpwdb.add_word(host, response.srvname)
   return stdnse.format_output( true, results )
 end

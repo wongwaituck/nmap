@@ -3,6 +3,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local comm = require "comm"
 local ipOps = require "ipOps"
+local unpwdb = require "unpwdb"
 
 description = [[
 Tridium Niagara Fox is a protocol used within Building Automation Systems. Based
@@ -101,6 +102,7 @@ id=i:1
       if not ipOps.ip_to_str(value) then
         -- If this is an IP address, don't set it as a hostname
         port.version.hostname = value
+        unpwdb.add_word(host, value)
       end
       to_return[key] = value
     end,

@@ -2,6 +2,7 @@ local mssql = require "mssql"
 local nmap = require "nmap"
 local smb = require "smb"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 -- -*- mode: lua -*-
 -- vim: set filetype=lua :
@@ -273,6 +274,7 @@ action = function( host )
     for _, instance in pairs( instanceList ) do
       process_instance( instance )
       scriptOutput[instance:GetName()] = create_instance_output_table( instance )
+      unpwdb.add_word(host, instance:GetName())
     end
   end
 

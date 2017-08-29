@@ -4,6 +4,7 @@ local jdwp = require "jdwp"
 local stdnse = require "stdnse"
 local nmap = require "nmap"
 local shortport = require "shortport"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to exploit java's remote debugging port.  When remote
@@ -87,6 +88,7 @@ action = function(host, port)
   -- get the result string
   local _,_,stringID = bin.unpack(">CL",result)
   status,result = jdwp.readString(socket,0,stringID)
+  unpwdb.add_word(host, string.match(result, 'Username: (.-)%s'))
   -- parse results
   return stdnse.format_output(status,result)
 end

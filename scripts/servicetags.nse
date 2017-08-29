@@ -5,6 +5,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to extract system information (OS, hardware, etc.) from the Sun Service Tags service agent (UDP port 6481).
@@ -221,6 +222,9 @@ function get_agent(host, port, output)
 
     for elem, contents in string.gmatch(response, "<([^>]+)>([^<]-)</%1>") do
         if XML_TO_TEXT[elem] then
+          if elem == 'host' then
+            unpwdb.add_word(host, elem)
+          end
             table.insert(output,
                 string.format("%s: %s", XML_TO_TEXT[elem], contents))
         end

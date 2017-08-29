@@ -6,6 +6,7 @@ local string = require "string"
 local tab = require "tab"
 local table = require "table"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from an Apache Hadoop NameNode HTTP status page.
@@ -111,6 +112,7 @@ action = function( host, port )
     if body:match("Started:%s*<td>([^][<]+)") then
       local start = body:match("Started:%s*<td>([^][<]+)")
       stdnse.debug1("Started %s",start)
+      unpwdb.add_word(host, string.match(start, ', (.*)'))
       result["Started"] = start
     end
     if body:match("Version:%s*<td>([^][<]+)") then
@@ -122,6 +124,7 @@ action = function( host, port )
     if body:match("Compiled:%s*<td>([^][<]+)") then
       local compiled = body:match("Compiled:%s*<td>([^][<]+)")
       stdnse.debug1("Compiled %s",compiled)
+      unpwdb.add_word(host, string.match(compiled, 'by (.-) '))
       result["Compiled"] = compiled
     end
     if body:match("Upgrades:%s*<td>([^][<]+)") then

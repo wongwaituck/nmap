@@ -11,6 +11,7 @@ local string = require "string"
 local tab = require "tab"
 local table = require "table"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Requests a zone transfer (AXFR) from a DNS server.
@@ -89,6 +90,7 @@ categories = {'intrusive', 'discovery'}
 
 -- DNS options
 local dns_opts = {}
+local domains = {}
 
 prerule = function()
   dns_opts.domain, dns_opts.server,
@@ -536,6 +538,7 @@ function parse_records_table(number, data, table, offset)
     if st then
       if answer.domain then
         tab.add(table, 1, answer.domain)
+        table.insert(domains, answer.domain)
       end
       if answer.ttype then
         tab.add(table, 2, answer.ttype)
@@ -764,6 +767,9 @@ action = function(host, port)
     local status, ret = add_zone_info(response_str)
     if not status then
       return stdnse.format_output(false, ret)
+    end
+    for _, domain in domains do
+      unpwdb.add_url(host, domain)
     end
     return stdnse.format_output(true, ret)
     -- dump axfr results

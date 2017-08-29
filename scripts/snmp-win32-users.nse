@@ -2,6 +2,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local snmp = require "snmp"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to enumerate Windows user accounts through SNMP
@@ -80,6 +81,10 @@ action = function(host, port)
   end
 
   users = process_answer( users )
+
+  for _, user in users do
+    unpwdb.add_word(host, user)
+  end
 
   if ( users == nil ) or ( #users == 0 ) then
     return

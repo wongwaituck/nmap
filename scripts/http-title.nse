@@ -3,6 +3,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
+local unpwdb = require "unpwdb"
 
 description = [[
 Shows the title of the default page of a web server.
@@ -58,6 +59,7 @@ action = function(host, port)
 
   if display_title and display_title ~= "" then
     display_title = string.gsub(display_title , "[\n\r\t]", "")
+    unpwdb.add_phrase(host, display_title)
     if #display_title > 65 then
       display_title = string.sub(display_title, 1, 62) .. "..."
     end

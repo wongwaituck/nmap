@@ -4,6 +4,7 @@ local nmap = require "nmap"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to retrieve the target's NetBIOS names and MAC address.
@@ -183,9 +184,13 @@ action = function(host)
   response["user"] = user_name
   response["mac"] = mac
 
+  unpwdb.add_word(host, server_name)
+  unpwdb.add_word(host, user_name)
+
   local names_output = {}
   for i = 1, #names, 1 do
     local name = names[i]
+    unpwdb.add_word(host, name)
     setmetatable(name, {
       __tostring = function(t)
         -- Tabular format with padding

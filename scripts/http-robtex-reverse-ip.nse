@@ -2,6 +2,7 @@ local http = require "http"
 local ipOps = require "ipOps"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Obtains up to 100 forward DNS names for a target IP address by querying the Robtex service (https://www.robtex.com/ip-lookup/).
@@ -67,6 +68,9 @@ action = function(host, port)
 
   local htmldata = http.get_url("https://www.robtex.com/ip-lookup/"..target, {any_af=true})
   local domains = parse_robtex_response(htmldata.body)
+  for _, domain in pairs(domains) do
+    unpwdb.add_url(host, domain)
+  end
   if ( #domains > 0 ) then
     return stdnse.format_output(true, domains)
   end

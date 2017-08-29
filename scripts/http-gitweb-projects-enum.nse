@@ -4,6 +4,7 @@ local stdnse = require "stdnse"
 local string = require "string"
 local tab = require "tab"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description=[[
 Retrieves a list of Git projects, owners and descriptions from a gitweb (web interface to the Git revision control system).
@@ -80,7 +81,7 @@ action = function(host, port)
         end
 
         tab.addrow(repo, project, get_owner(owner), desc)
-
+        unpwdb.add_word(host, get_owner(owner))
         -- Protect from parsing errors or long owners
         -- just an arbitrary value
         if owner:len() < 128 and not owners[owner] then

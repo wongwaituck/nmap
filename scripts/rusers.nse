@@ -3,6 +3,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local tab = require "tab"
+local unpwdb = require "unpwdb"
 
 description = [[
 Connects to rusersd RPC service and retrieves a list of logged-in users.
@@ -165,6 +166,7 @@ action = function(host, port)
     local entry
     pos, entry, data = rusers2_entry(comm, data, pos)
     tab.addrow(out_tab, entry.user, entry.tty, entry.host, entry.time, entry.idle)
+    unpwdb.add_word(host, entry.user)
     out[#out+1] = entry
   end
 

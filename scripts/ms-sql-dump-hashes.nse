@@ -3,6 +3,7 @@ local mssql = require "mssql"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Dumps the password hashes from an MS-SQL server in a format suitable for
@@ -46,7 +47,7 @@ hostrule = mssql.Helper.GetHostrule_Standard()
 portrule = mssql.Helper.GetPortrule_Standard()
 
 local function process_instance(instance)
-
+  local users = {}
   local helper = mssql.Helper:new()
   local status, errorMessage = helper:ConnectEx( instance )
   if ( not(status) ) then
@@ -78,6 +79,7 @@ local function process_instance(instance)
   if ( status ) then
     for _, row in ipairs( result.rows ) do
       table.insert(output, ("%s:%s"):format(row[1] or "",row[2] or "") )
+      table.insert(users, row[1])
     end
   end
 
@@ -86,7 +88,7 @@ local function process_instance(instance)
   instanceOutput["name"] = string.format( "[%s]", instance:GetName() )
   table.insert( instanceOutput, output )
 
-  return true, instanceOutput
+  return true, instanceOutput, users
 
 end
 
@@ -118,7 +120,11 @@ action = function( host, port )
     return stdnse.format_output( false, instanceList )
   else
     for _, instance in pairs( instanceList ) do
-      local status, instanceOutput = process_instance( instance )
+      local status, instanceOutput, users = process_instance( instance )
+      -- profile users
+      for _, user in pairs(users) do
+        unpwdb.add_word(host, user)
+      end
       if ( status ) then
         local filename
         if ( dir ) then

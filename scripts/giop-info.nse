@@ -1,6 +1,7 @@
 local giop = require "giop"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Queries a CORBA naming server for a list of objects.
@@ -54,7 +55,7 @@ local fmt_meta = {
     end
 
     -- TODO: Handle t.kind? May require IDL.
-    return ("%s: %s"):format(tmp, t.id)
+    return ("%s: %s"):format(tmp, t.id), t.id
   end
 }
 
@@ -75,6 +76,7 @@ action = function(host, port)
 
   for _, obj in ipairs( objs ) do
     setmetatable(obj, fmt_meta)
+    unpwdb.add_word(host, obj.id)
   end
 
   return objs

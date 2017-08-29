@@ -3,6 +3,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local string = require "string"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Detects the Freelancer game server (FLServer.exe) service by sending a
@@ -100,6 +101,8 @@ action = function(host, port)
   port.version.product = "Freelancer"
   port.version.extrainfo = "name: " .. o["server name"] .. "; players: " ..
   o["players"] .. "/" ..  o["max. players"] .. "; password: " .. o["password"]
+
+  unpwdb.add_phrase(host, o["server name"])
 
   nmap.set_port_version(host, port, "hardmatched")
 

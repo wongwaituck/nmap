@@ -5,6 +5,7 @@ local nmap = require "nmap"
 local packet = require "packet"
 local stdnse = require "stdnse"
 local string = require "string"
+local unpwdb = require "unpwdb"
 
 local openssl = stdnse.silent_require "openssl"
 
@@ -344,6 +345,7 @@ function action(host)
   until empty(pending) or now > end_time
 
   s:pcap_close()
-
+  -- add hostname to profiling
+  unpwdb.add_url(host, results[QTYPE_NODENAME])
   return format_results(results)
 end

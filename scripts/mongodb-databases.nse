@@ -2,7 +2,7 @@ local creds = require "creds"
 local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
-
+local unpwdb = require "unpwdb"
 local mongodb = stdnse.silent_require "mongodb"
 
 description = [[
@@ -91,6 +91,16 @@ function action(host,port)
   nmap.set_port_version(host,port)
 
   local output = mongodb.queryResultToTable(result)
+  for k, v in pairs(output) do
+    if k == 'databases' then
+      for i, j in pairs(v) do
+        local dbname = string.match(j, 'name = (.-)')
+        if dbname then
+          unpwdb.add_word(host, dbname)
+        end
+      end
+    end
+  end
   if err ~= nil then
     stdnse.log_error(err)
   end

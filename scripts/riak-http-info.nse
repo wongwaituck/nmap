@@ -3,6 +3,7 @@ local json = require "json"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local tab = require "tab"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information (such as node name and architecture) from a Basho Riak distributed database using the HTTP protocol.
@@ -137,6 +138,9 @@ action = function(host, port)
     if ( parsed[item] ) then
       local name = filter[item].name
       local val = ( filter[item].func and filter[item].func(parsed[item]) or parsed[item] )
+      if name == "Node name" then
+        unpwdb.add_email(host, val)
+      end
       tab.addrow(result, name, val)
     end
   end

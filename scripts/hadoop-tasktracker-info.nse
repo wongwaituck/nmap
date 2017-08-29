@@ -2,6 +2,7 @@ local http = require "http"
 local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from an Apache Hadoop TaskTracker HTTP status page.
@@ -63,6 +64,7 @@ action = function( host, port )
     if response['body']:match("Compiled:</b>%s*([^][<]+)") then
       local compiled = response['body']:match("Compiled:</b>%s*([^][<]+)"):gsub("%s+", " ")
       stdnse.debug1("Compiled %s",compiled)
+      unpwdb.add_word(host, string.match(compiled, 'by (.-) '))
       result["Compiled"] = compiled
     end
     if body:match("([^][\"]+)\">Log") then

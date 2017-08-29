@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Enumerates DNS names using the DNSSEC NSEC-walking technique.
@@ -346,6 +347,7 @@ local function enum(host, port, domain)
         end
       else
         stdnse.debug1("adding %s", last)
+        unpwdb.add_word(host, last)
         subdomain = next_domain(last)
         table.insert(all_results, join({last, domain}))
         seen[last] = #all_results

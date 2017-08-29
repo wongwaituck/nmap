@@ -7,7 +7,7 @@ local stdnse = require "stdnse"
 local base64 = require "base64"
 local smbauth = require "smbauth"
 local string = require "string"
-
+local unpwdb = require "unpwdb"
 
 description = [[
 This script enumerates information from remote IMAP services with NTLM
@@ -148,10 +148,12 @@ action = function(host, port)
   -- Display information returned & ignore responses with null values
   if ntlm_decoded.netbios_domain_name and #ntlm_decoded.netbios_domain_name > 0 then
     output.NetBIOS_Domain_Name = ntlm_decoded.netbios_domain_name
+    unpwdb.add_word(host, ntlm_decoded.netbios_domain_name)
   end
 
   if ntlm_decoded.netbios_computer_name and #ntlm_decoded.netbios_computer_name > 0 then
     output.NetBIOS_Computer_Name = ntlm_decoded.netbios_computer_name
+    unpwdb.add_word(host, ntlm_decoded.netbios_computer_name)
   end
 
   if ntlm_decoded.dns_domain_name and #ntlm_decoded.dns_domain_name > 0 then

@@ -5,6 +5,7 @@ local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from an Apache Hadoop JobTracker HTTP status page.
@@ -86,6 +87,7 @@ local get_userhistory = function( host, port )
         local user =  line:match("<td>([^][<>]+)</td></tr>")
         local job_time =  line:match("</td><td>([^][<]+)")
         stdnse.debug1("User: %s (%s)",user,job_time)
+        unpwdb.add_word(host, user)
         table.insert( results,  ("User: %s (%s)"):format(user,job_time))
       end
     end

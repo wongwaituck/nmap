@@ -4,6 +4,7 @@ local stdnse = require "stdnse"
 local tab = require "tab"
 local table = require "table"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to retrieve the list of target systems and networks from an OpenVAS Manager server.
@@ -110,6 +111,9 @@ action = function(host, port)
     if targets ~= nil then
       table.insert(results, "Targets for account " .. username .. ":")
       table.insert(results, report(targets))
+      for name, _ in pairs(targets) do
+        unpwdb.add_phrase(host, name)
+      end
     else
       table.insert(results, "No targets found for account " .. username)
     end

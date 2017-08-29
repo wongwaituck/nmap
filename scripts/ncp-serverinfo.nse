@@ -1,6 +1,7 @@
 local ncp = require "ncp"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves eDirectory server information (OS version, server name,
@@ -43,6 +44,8 @@ action = function(host, port)
   if ( not(status) ) then return stdnse.format_output(false, resp) end
 
   status, resp = helper:getServerInfo()
+  unpwdb.add_word(host, resp['Server name'])
+  unpwdb.add_word(host, resp['Tree Name'])
   if ( not(status) ) then return stdnse.format_output(false, resp) end
 
   helper:close()

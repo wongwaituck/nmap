@@ -1,7 +1,8 @@
-local anyconnect = require('anyconnect')
-local stdnse = require('stdnse')
-local shortport = require('shortport')
-local nmap = require('nmap')
+local anyconnect = require "anyconnect"
+local stdnse = require "stdnse"
+local shortport = require "shortport"
+local nmap = require "nmap"
+local unpwdb = require "unpwdb"
 
 description = [[
 Connect as Cisco AnyConnect client to a Cisco SSL VPN and retrieves version
@@ -54,6 +55,11 @@ action = function(host, port)
 
     for _, tag in ipairs(xmltags) do
       o[tag] = ac.conn_attr[tag]
+      if tag == 'tunnel-group' or tag == 'group-alias' then
+        unpwdb.add_word(host, ac.conn_attr[tag])
+      elseif tag == 'host' then
+        unpwdb.add_url(host, ac.conn_attr[tag])
+      end
     end
     return o
   end

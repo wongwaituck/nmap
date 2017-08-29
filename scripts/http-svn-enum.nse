@@ -3,6 +3,7 @@ local shortport = require "shortport"
 local slaxml = require "slaxml"
 local stdnse = require "stdnse"
 local tab = require "tab"
+local unpwdb = require "unpwdb"
 
 description = [[Enumerates users of a Subversion repository by examining logs of most recent commits.
 ]]
@@ -122,6 +123,7 @@ action = function(host, port)
         tab.addrow(output, "Author", "Count", "Revision", "Date")
 
         for revision_author, data in pairs(unames) do
+          unpwdb.add_word(host, revision_author)
           tab.addrow(output, revision_author, data[1], data[2], data[3])
         end
 

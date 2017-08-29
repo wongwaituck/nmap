@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from Flume master HTTP pages.
@@ -255,6 +256,7 @@ action = function( host, port )
       if (table_count(nodes, hostname) == 0) then
         nodes[#nodes+1] = hostname
         add_target(hostname)
+        unpwdb.add_url(host, hostname)
       end
     end
     if next(nodes) ~= nil then
@@ -264,6 +266,7 @@ action = function( host, port )
       if (table_count(zookeepers, zookeeper) == 0) then
         zookeepers[#zookeepers+1] = zookeeper
         add_target(zookeeper)
+        unpwdb.add_url(host, zookeeper)
       end
     end
     if next(zookeepers) ~= nil then

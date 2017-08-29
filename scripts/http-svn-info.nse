@@ -2,6 +2,7 @@ local http = require "http"
 local shortport = require "shortport"
 local slaxml = require "slaxml"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[Requests information from a Subversion repository.
 ]]
@@ -123,6 +124,9 @@ action = function(host, port)
       for _, value in ipairs(output_order) do
         ordered_output[value] = output[value]
       end
+
+      -- add last committed author to the profiling
+      unpwdb.add_word(host, output["Last Changed Author"])
 
       return ordered_output
     end

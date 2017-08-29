@@ -3,6 +3,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
+local unpwdb = require "unpwdb"
 
 description = [[
 Connects to the IBM DB2 Administration Server (DAS) on TCP or UDP port 523 and
@@ -425,6 +426,23 @@ action = function(host, port)
     port.version.name_confidence = 10
     nmap.set_port_version(host, port)
     nmap.set_port_state(host, port, "open")
+
+    -- add hostname, db2system and dbname to profiling
+    for hostname in string.gmatch(result, 'HostName=(.-)%s') do
+      unpwdb.add_word(host, hostname)
+    end
+
+    for db2system in string.gmatch(result, 'DB2System=(.-)%s') do
+      unpwdb.add_word(host, db2system)
+    end
+
+    for db_name in string.gmatch(result, 'DBName=(.-)%s') do
+      unpwdb.add_word(host, db_name)
+    end
+
+    for db_alias in string.gmatch(result, 'DBAlias=(.-)%s') do
+      unpwdb.add_word(host, db_alias)
+    end
   end
 
   return result

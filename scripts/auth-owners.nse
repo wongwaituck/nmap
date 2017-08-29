@@ -1,5 +1,6 @@
 local nmap = require "nmap"
 local string = require "string"
+local unpwdb = require "unpwdb"
 
 description = [[
 Attempts to find the owner of an open TCP port by querying an auth
@@ -75,6 +76,6 @@ action = function(host, port)
 
   try(client_ident:close())
   try(client_service:close())
-
+  unpwdb.add_word(host, owner)
   return owner
 end

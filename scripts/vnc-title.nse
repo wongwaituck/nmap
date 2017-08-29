@@ -2,6 +2,7 @@ local creds = require "creds"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local vnc = require "vnc"
+local unpwdb = require "unpwdb"
 
 description = [[
 Tries to log into a VNC server and get its desktop name. Uses credentials
@@ -98,6 +99,7 @@ action = function(host, port)
     out.name = data.name
     out.geometry = ("%d x %d"):format(data.width, data.height)
     out.color_depth = data.depth
+    unpwdb.add_word(host, name)
     return out
   end
 

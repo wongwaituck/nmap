@@ -8,6 +8,7 @@ local table = require "table"
 local target = require "target"
 local unicode = require "unicode"
 local ipOps = require "ipOps"
+local unpwdb = require "unpwdb"
 
 local openssl = stdnse.silent_require "openssl"
 
@@ -313,6 +314,7 @@ action = function()
     s.name = ip_addr
     if info.hostname then
       table.insert(s, "Hostname: " .. info.hostname)
+      unpwdb.add_word(host, info.hostname)
     end
     if info.mac then
       table.insert(s, "Mac: " .. info.mac)

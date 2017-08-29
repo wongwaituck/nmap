@@ -5,6 +5,7 @@ local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
 local target = require "target"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves information from an Apache Hadoop secondary NameNode HTTP status page.
@@ -91,6 +92,7 @@ action = function( host, port )
     if body:match("Compiled:%s*</td><td>([^][\n]+)") then
       local compiled = body:match("Compiled:%s*</td><td>([^][\n]+)")
       stdnse.debug1("Compiled %s",compiled)
+      unpwdb.add_word(host, string.match(compiled, 'by (.-) '))
       result["Compiled"] = compiled
     end
     if body:match("([^][\"]+)\">Logs") then

@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local slaxml = require "slaxml"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Retrieves system information (OS version, available memory, etc.) from
@@ -234,6 +235,9 @@ action = function( host, port )
       if not (p_elem and p_elem[name]) then return end
       local p_attr = p_elem[name]
       if not p_attr then return end
+      if name == "Name" then
+        unpwdb.add_url(host, value)
+      end
       p_attr(value, state)
       end,
   }

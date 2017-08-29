@@ -3,6 +3,7 @@ local json = require "json"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Enumerates Drupal users by exploiting an information disclosure vulnerability
@@ -73,6 +74,7 @@ action = function(host, port)
         for _,user in pairs(info) do
           if user ~= "Anonymous" then
             table.insert(result, user)
+            unpwdb.add_word(host, user)
           end
         end
       end
