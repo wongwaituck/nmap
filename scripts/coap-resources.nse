@@ -2,6 +2,7 @@ local coap = require "coap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Dumps list of available resources from CoAP endpoints.
@@ -310,6 +311,10 @@ action = function(host, port)
   local formatted = result
   if true then
     formatted = format_payload(result)
+    for endpoint, r in pairs(formatted) do
+      unpwdb.add_url(host, endpoint)
+      unpwdb.add_phrase(host, r["title"])
+    end
   end
 
   return formatted

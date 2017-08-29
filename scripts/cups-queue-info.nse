@@ -1,6 +1,7 @@
 local ipp = require "ipp"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
+local unpwdb = require "unpwdb"
 
 description = [[
 Lists currently queued print jobs of the remote CUPS service grouped by
@@ -40,7 +41,12 @@ action = function(host, port)
     return stdnse.format_output(false, "Failed to connect to server")
   end
 
-  local output = helper:getQueueInfo()
+  local output, results = helper:getQueueInfo()
+
+  for _, printer in pairs(results) do
+    unpwdb.add_phrase(host, printer["owner"])
+    unpwdb.add_phrase(host, printer["jobname"])
+  end
   if ( output ) then
     return stdnse.format_output(true, output)
   end

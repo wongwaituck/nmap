@@ -1,10 +1,10 @@
-local nmap      = require "nmap"
-local stdnse    = require "stdnse"
+local nmap = require "nmap"
+local stdnse = require "stdnse"
 local shortport = require "shortport"
-local tn3270    = require "tn3270"
-local table     = require "table"
-local string   = require "string"
-
+local tn3270 = require "tn3270"
+local table = require "table"
+local string = require "string"
+local unpwdb = require "unpwdb"
 
 description = [[
 Using the CICS transaction CEMT, this script attempts to gather information
@@ -240,6 +240,11 @@ local function cics_info( host, port, commands, user, pass, cemt, trans )
       sysresults["MQ Connection"] = Mqconn:sub(1,Mqconn_len-1)
     end
     results["System"] = sysresults
+
+    -- send to profiling
+    unpwdb.add_word(host, sysresults["System ID"])
+    unpwdb.add_word(host, sysresults["Application ID"])
+    unpwdb.add_word(host, sysresults["Default User"])
   end -- Done with INQUIRE SYSTEM
 
   stdnse.debug(2,"Sending F3")
@@ -278,6 +283,9 @@ local function cics_info( host, port, commands, user, pass, cemt, trans )
       end
     end
     results["Datasets"] = datasets
+    for _, data in pairs(datasets) do
+      unpwdb.add_url(host, data)
+    end
   end -- Done with DSNAME
 
   stdnse.debug(2,"Sending F3")

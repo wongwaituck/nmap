@@ -4,6 +4,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Extracts a list of Citrix servers from the ICA Browser service.
@@ -132,6 +133,7 @@ action = function(host, port)
 
     for _, v in ipairs(tmp_table) do
       table.insert(server_list, v)
+      unpwdb.add_word(host, v)
     end
   end
 

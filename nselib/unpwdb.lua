@@ -217,6 +217,17 @@ function add_phrase(host, phrase, separator, include_stop_words)
   return true, words, nil
 end
 
+--  adds the url together with the subdomain names amd the domain name
+--  for example, for hack.you.com, "hack", "you", and "com" will be added
+--  @param host the target host object in which you wish to associate the words
+--  @param url the url which you wish to parse
+--  @return status boolean representing whether all the keywords were associated
+--  @return words the array of words added to the password profile, or nil
+--  @return errors the array of errors if adding was unsuccessful
+function add_url(host, url)
+  return add_phrase(host, url, "%.")
+end
+
 --  adds the email and constituent elements (username and domain) to the profile
 --
 --  this function only expects the typical email format, i.e. <user>@<domain>
@@ -225,7 +236,7 @@ end
 --
 --  @param host the target host object in which you wish to associate the words
 --  @param email the email that you wish to parse
---  @return boolean representing whether all the keywords were associated
+--  @return status boolean representing whether all the keywords were associated
 --  @return words the array of words added to the password profile, or nil
 --  @return errors the array of errors if the adding was unsuccessful
 function add_email(host, email)
@@ -236,7 +247,7 @@ function add_email(host, email)
   local u_status, u_err = add_word(host, username)
   local d_status, d_err = add_word(host, domain)
   -- split the domain by '.', the constituent words are added
-  local p_status, p_words, p_err = add_phrase(host, domain, "%.")
+  local p_status, p_words, p_err = add_url(host, domain)
 
   if u_err then
     table.insert(errors, u_err)

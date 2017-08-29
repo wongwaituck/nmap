@@ -2,6 +2,7 @@ local citrixxml = require "citrixxml"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Extracts the name of the server farm and member servers from Citrix XML
@@ -40,6 +41,7 @@ action = function(host, port)
 
   for _, srv in ipairs(servers) do
     table.insert(response, srv)
+    unpwdb.add_phrase(host, srv, "-")
   end
 
   return stdnse.format_output(true, response)

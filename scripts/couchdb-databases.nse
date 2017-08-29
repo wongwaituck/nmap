@@ -4,6 +4,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Gets database tables from a CouchDB database.
@@ -45,9 +46,11 @@ local DISCARD = {}
 -- uses the DISCARD table above to see what
 -- keys should be omitted from the results
 -- @param data a table containing data
---@return another table containing data, with some keys removed
+-- @return another table containing data, with some keys removed
+-- @return database_names a table containing all databases found
 local function queryResultToTable(data)
   local result = {}
+  local database_names = {}
   for k,v in pairs(data) do
     dbg("(%s,%s)",k,tostring(v))
     if DISCARD[k] ~= 1 then
@@ -56,10 +59,11 @@ local function queryResultToTable(data)
         table.insert(result,queryResultToTable(v))
       else
         table.insert(result,(("%s = %s"):format(tostring(k), tostring(v))))
+        table.insert(database_names, tostring(v))
       end
     end
   end
-  return result
+  return result, database_names
 end
 
 action = function(host, port)
@@ -91,7 +95,11 @@ action = function(host, port)
   -- We have a valid table in result containing the parsed json
   -- now, get all the interesting bits
 
-  result = queryResultToTable(result)
+  local databases
+  result, databases = queryResultToTable(result)
 
+  for _, database in pairs(databases) do
+    unpwdb.add(host, database)
+  end
   return stdnse.format_output(true, result )
 end

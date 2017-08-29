@@ -3,6 +3,7 @@ local nmap = require "nmap"
 local shortport = require "shortport"
 local stdnse = require "stdnse"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Extracts a list of applications, ACLs, and settings from the Citrix XML
@@ -77,8 +78,9 @@ portrule = shortport.portnumber({8080,80,443}, "tcp")
 --
 -- @param appdata table with results from parse_appdata_response
 -- @param mode string short or long, see usage above
+-- @param the host associated with the table
 -- @return table suitable for stdnse.format_output
-function format_output(appdata, mode)
+function format_output(appdata, mode, host)
 
   local result = {}
   local setting_titles = { {appisdisabled="Disabled"}, {appisdesktop="Desktop"}, {AppOnDesktop="On Desktop"},
@@ -123,10 +125,16 @@ function format_output(appdata, mode)
 
       if AppData.AccessList then
         if AppData.AccessList.User then
+          for _, l_user in pairs(AppData.AccessList.User) do
+            unpwdb.add_phrase(host, l_user, "\\")
+          end
           table.insert(result_part, "Users: " .. stdnse.strjoin(", ", AppData.AccessList.User) )
         end
 
         if AppData.AccessList.Group then
+          for _, l_group in pairs(Appdata.AccessList.Group) do
+            unpwdb.add_phrase(host, l_group, "\\")
+          end
           table.insert(result_part, "Groups: " .. stdnse.strjoin(", ", AppData.AccessList.Group) )
         end
 
@@ -147,7 +155,7 @@ action = function(host,port)
   local response = citrixxml.request_appdata(host, port, {ServerAddress="",attr={addresstype="dot"},DesiredDetails={"all","access-list"} })
   local appdata = citrixxml.parse_appdata_response(response)
 
-  local response = format_output(appdata, (nmap.verbosity() > 1 and "long" or "short"))
+  local response = format_output(appdata, (nmap.verbosity() > 1 and "long" or "short"), host)
 
   return stdnse.format_output(true, response)
 

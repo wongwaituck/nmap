@@ -3,6 +3,7 @@ local shortport = require "shortport"
 local stdnse = require "stdnse"
 local string = require "string"
 local table = require "table"
+local unpwdb = require "unpwdb"
 
 description = [[
 Lists printers managed by the CUPS printing service.
@@ -71,6 +72,8 @@ action = function(host, port)
       ("State: %s"):format(states[state] or ""),
       ("Queue: %s print jobs"):format(tonumber(printer.queue_count) or 0),
     } )
+
+    unpwdb.add_phrase(host, printer.dns_sd_name)
   end
 
   if ( 0 ~= #output ) then
